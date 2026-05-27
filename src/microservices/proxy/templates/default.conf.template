@@ -1,0 +1,61 @@
+# Define your disable/enable variable (e.g., from a ENV_VARIABLE)
+# Default to 0 (normal split) if the disable flag isn't present
+map ${GRADUAL_MIGRATION} $split_mode {
+    default                             0;
+    "~*false"                           0; # 0 percents means bypass the split and go to the default version
+    "~*true"                            1;
+}
+
+# Map the mode to your split target
+map $split_mode $movies_upstream {
+    default     "movies_monolith";
+    0           "movies_monolith";    # Override/fallback route
+    1           $split_movies_backend;  # Normal route (uses the split_clients below)
+}
+
+# Standard split_clients for normal traffic
+split_clients "${remote_addr}" $split_movies_backend {
+    ${MOVIES_MIGRATION_PERCENT}%     "movies_ms";
+    *                                "movies_monolith";
+}
+
+
+upstream movies_monolith {
+    server ${MONOLITH_DOMAIN}:${MONOLITH_PORT};
+}
+
+upstream movies_ms {
+    server ${MOVIES_SERVICE_DOMAIN}:${MOVIES_SERVICE_PORT};
+}
+
+# Hash the remote IP to decide the upstream
+#split_clients "${remote_addr}" $movies_upstream {
+#    ${MOVIES_MIGRATION_PERCENT}%    movies_ms;
+#    *                     movies_monolith;
+#}
+
+log_format movies_monolith '$remote_addr - $upstream_addr - $request - $upstream_response_time - $request_time';
+log_format movies_ms '$remote_addr - $upstream_addr - $request - $upstream_response_time - $request_time';
+access_log /var/log/nginx/upstream_movies_monolith.log movies_monolith;
+access_log /var/log/nginx/upstream_movies_ms.log movies_ms;
+
+server {
+    # Docker DNS
+    resolver 127.0.0.11;
+    
+    listen 0.0.0.0:80;
+
+    location /health {
+        proxy_pass ${MONOLITH_URL}/health;
+    }
+
+    location /api/movies {
+        add_header X-Split-Variant $split_movies_backend;
+        add_header X-Split-Variant-Upstream $movies_upstream;
+        proxy_pass http://$movies_upstream/api/movies;
+    }
+
+    location /api/users {
+        proxy_pass ${MONOLITH_URL}/api/users;
+    }
+}
