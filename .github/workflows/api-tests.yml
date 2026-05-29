@@ -36,29 +36,13 @@ jobs:
       - name: Start services with Docker Compose
         run: |
           docker compose up -d
-          # Wait for services to be ready
+          # TODO Replace sleep with container healthchecks to do not wait more than needed
           echo "Waiting for services to be ready..."
           sleep 120
-      
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '18'
-          cache: 'npm'
-          cache-dependency-path: tests/postman/package-lock.json
-      
-      - name: Install Newman and dependencies
-        working-directory: tests/postman
-        run: npm install
       
       - name: Run API tests
         working-directory: tests/postman
         run: |
-
-          docker compose up -d
-          # Wait for services to be ready
-          echo "Waiting for services to be ready..."
-          sleep 15
           # Build the Docker image
           docker build -t cinemaabyss-api-tests .
           

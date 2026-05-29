@@ -154,3 +154,7 @@ go.work
 
 # Postman tests reports
 tests/postman/reports/
+
+# C4 Structurizr
+src/docs/diagrams/c4/.structurizr/
+src/docs/diagrams/c4/workspace.json

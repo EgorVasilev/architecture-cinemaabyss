@@ -22,7 +22,7 @@
     },
     {
       "key": "proxyServiceUrl",
-      "value": "http://proxy-service:8000",
+      "value": "http://proxy-service:80",
       "type": "default",
       "enabled": true
     }
