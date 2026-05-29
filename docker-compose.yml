@@ -57,7 +57,8 @@ services:
       dockerfile: Dockerfile
     container_name: cinemaabyss-monolith
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
     ports:
       - "8080:8080"
     environment:
@@ -73,7 +74,8 @@ services:
       dockerfile: Dockerfile
     container_name: cinemaabyss-movies-service
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
     ports:
       - "8081:8081"
     environment:
@@ -83,21 +85,23 @@ services:
       - cinemaabyss-network
 
   # Events Microservice
-  # events-service:
-  #   build:
-  #     context: ./src/microservices/events
-  #     dockerfile: Dockerfile
-  #   container_name: cinemaabyss-events-service
-  #   depends_on:
-  #     - postgres
-  #     - kafka
-  #   ports:
-  #     - "8082:8082"
-  #   environment:
-  #     PORT: 8082
-  #     KAFKA_BROKERS: kafka:9092
-  #   networks:
-  #     - cinemaabyss-network
+  events-service:
+    build:
+      context: ./src/microservices/events
+      dockerfile: Dockerfile
+    container_name: cinemaabyss-events-service
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_started
+    ports:
+      - "8082:8082"
+    environment:
+      PORT: 8082
+      KAFKA_BROKERS: kafka:9092
+    networks:
+      - cinemaabyss-network
 
   # Proxy Service (API Gateway)
   proxy-service:
@@ -106,9 +110,12 @@ services:
       dockerfile: Dockerfile
     container_name: cinemaabyss-proxy-service
     depends_on:
-      - monolith
-      - movies-service
-      # - events-service
+      monolith:
+        condition: service_started
+      movies-service:
+        condition: service_started
+      events-service:
+        condition: service_started
     ports:
       - "8000:80"
     environment:
@@ -139,6 +146,23 @@ services:
       KAFKA_CLUSTERS_0_ZOOKEEPER: zookeeper:2181
     networks:
       - cinemaabyss-network
+  
+  # Docs
+  c4:
+    image: structurizr/lite:2025.11.08
+    ports:
+      - 9001:8080
+    volumes:
+      - ./src/docs/diagrams/c4:/usr/local/structurizr
+  
+  swagger:
+    image: swaggerapi/swagger-ui:v5.32.5
+    environment:
+      SWAGGER_JSON: /spec/src/api/openapi.yml
+    ports:
+      - "${SWAGGER_PORT:-9002}:8080"
+    volumes:
+      - ./api-specification.yaml:/spec/src/api/openapi.yml:ro
 
 volumes:
   postgres-data:

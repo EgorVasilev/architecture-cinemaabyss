@@ -28,12 +28,6 @@ upstream movies_ms {
     server ${MOVIES_SERVICE_DOMAIN}:${MOVIES_SERVICE_PORT};
 }
 
-# Hash the remote IP to decide the upstream
-#split_clients "${remote_addr}" $movies_upstream {
-#    ${MOVIES_MIGRATION_PERCENT}%    movies_ms;
-#    *                     movies_monolith;
-#}
-
 log_format movies_monolith '$remote_addr - $upstream_addr - $request - $upstream_response_time - $request_time';
 log_format movies_ms '$remote_addr - $upstream_addr - $request - $upstream_response_time - $request_time';
 access_log /var/log/nginx/upstream_movies_monolith.log movies_monolith;
@@ -50,12 +44,22 @@ server {
     }
 
     location /api/movies {
-        add_header X-Split-Variant $split_movies_backend;
-        add_header X-Split-Variant-Upstream $movies_upstream;
         proxy_pass http://$movies_upstream/api/movies;
     }
 
     location /api/users {
         proxy_pass ${MONOLITH_URL}/api/users;
+    }
+
+    location /api/events/movies {
+        proxy_pass ${EVENTS_SERVICE_URL}/api/events/movies;
+    }
+
+    location /api/events/user {
+        proxy_pass ${EVENTS_SERVICE_URL}/api/events/user;
+    }
+
+     location /api/events/payment {
+        proxy_pass ${EVENTS_SERVICE_URL}/api/events/payment;
     }
 }
