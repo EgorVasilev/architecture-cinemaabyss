@@ -49,6 +49,14 @@ server {
         proxy_pass http://$movies_upstream/api/movies;
     }
 
+    location /api/payments {
+        proxy_pass ${MONOLITH_URL}/api/payments;
+    }
+
+    location /api/subscriptions {
+        proxy_pass ${MONOLITH_URL}/api/subscriptions;
+    }
+
     location /api/users {
         proxy_pass ${MONOLITH_URL}/api/users;
     }
