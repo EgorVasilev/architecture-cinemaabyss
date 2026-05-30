@@ -40,7 +40,9 @@ server {
     listen 0.0.0.0:80;
 
     location /health {
-        proxy_pass ${MONOLITH_URL}/health;
+        access_log off;
+        add_header 'Content-Type' 'application/json';
+        return 200 '{"status":"true"}';
     }
 
     location /api/movies {
