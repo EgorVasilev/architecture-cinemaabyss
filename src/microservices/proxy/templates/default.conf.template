@@ -49,9 +49,7 @@ server {
     }
 
     location /api/payments {
-        set $payments_svc "${MONOLITH_URL}";
-
-        proxy_pass $payments_svc;
+        proxy_pass ${MONOLITH_URL}/api/payments;
     }
 
     location /api/subscriptions {
