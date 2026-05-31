@@ -151,7 +151,7 @@ services:
   c4:
     image: structurizr/lite:2025.11.08
     ports:
-      - 9001:8080
+      - 9010:8080
     volumes:
       - ./src/docs/diagrams/c4:/usr/local/structurizr
   
@@ -160,7 +160,7 @@ services:
     environment:
       SWAGGER_JSON: /spec/src/api/openapi.yml
     ports:
-      - "${SWAGGER_PORT:-9002}:8080"
+      - "${SWAGGER_PORT:-9011}:8080"
     volumes:
       - ./api-specification.yaml:/spec/src/api/openapi.yml:ro
 

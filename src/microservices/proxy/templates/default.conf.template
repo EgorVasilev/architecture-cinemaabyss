@@ -46,30 +46,34 @@ server {
     }
 
     location /api/movies {
-        proxy_pass http://$movies_upstream/api/movies;
+        proxy_pass http://$movies_upstream$uri$is_args$args;
     }
 
     location /api/payments {
-        proxy_pass ${MONOLITH_URL}/api/payments;
+        proxy_pass ${MONOLITH_URL}$uri$is_args$args;
     }
 
     location /api/subscriptions {
-        proxy_pass ${MONOLITH_URL}/api/subscriptions;
+        proxy_pass ${MONOLITH_URL}$uri$is_args$args;
     }
 
     location /api/users {
-        proxy_pass ${MONOLITH_URL}/api/users;
+        proxy_pass ${MONOLITH_URL}$uri$is_args$args;
     }
 
-    location /api/events/movies {
-        proxy_pass ${EVENTS_SERVICE_URL}/api/events/movies;
+    location /api/events/movie {
+        proxy_pass ${EVENTS_SERVICE_URL}/api/events/movie;
     }
 
     location /api/events/user {
         proxy_pass ${EVENTS_SERVICE_URL}/api/events/user;
     }
 
-     location /api/events/payment {
+    location /api/events/payment {
         proxy_pass ${EVENTS_SERVICE_URL}/api/events/payment;
+    }
+
+    location /api/events/health {
+        proxy_pass ${EVENTS_SERVICE_URL}/api/events/health;
     }
 }
