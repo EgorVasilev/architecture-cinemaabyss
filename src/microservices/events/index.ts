@@ -37,8 +37,13 @@ type PaymentPayload = {
   method_type?: string
 }
 
+function log(timestamp: string, eventId: string, topic: string) {
+  console.log(`Event has been sent: ${timestamp} - ${eventId} - to ${topic} topic`);
+}
+
 app.post('/api/events/movie', async (req: Request<{}, {}, MoviePayload>, res) => {
   const movie = req.body;
+  const topic = "movie-events";
 
   // TODO payload validation
 
@@ -46,7 +51,7 @@ app.post('/api/events/movie', async (req: Request<{}, {}, MoviePayload>, res) =>
     const timestamp = new Date();
 
     const [response] = await producer.send({
-      topic: 'movie-events',
+      topic,
       messages: [{ key: movie.movie_id.toString(), value: JSON.stringify(movie)  }],
     });
 
@@ -56,17 +61,21 @@ app.post('/api/events/movie', async (req: Request<{}, {}, MoviePayload>, res) =>
       return;
     }
 
+    const eventId = `movie-${movie.movie_id}-${movie.action}`
+
     res.status(201).send({
       "status": "success",
       "partition": response.partition,
       "offset": response.logStartOffset,
       "event": {
-        "id": `movie-${movie.movie_id}-${movie.action}`,
+        "id": eventId,
         "type": "movie",
         "timestamp": timestamp.toISOString(),
         "payload": {}
       }
     });
+
+    log(timestamp.toISOString(), eventId, topic);
   } catch (error) {
     res.status(500).send({error});
   }
@@ -74,12 +83,13 @@ app.post('/api/events/movie', async (req: Request<{}, {}, MoviePayload>, res) =>
 
 app.post('/api/events/user', async (req: Request<{}, {}, UserPayload>, res) => {
   const user = req.body;
+  const topic = 'user-events';
 
   // TODO payload validation
 
   try {
     const [response] = await producer.send({
-      topic: 'user-events',
+      topic,
       messages: [{ key: user.user_id.toString(), value: JSON.stringify(user)  }],
     });
 
@@ -89,17 +99,21 @@ app.post('/api/events/user', async (req: Request<{}, {}, UserPayload>, res) => {
       return;
     }
 
+    const eventId = `user-${user.user_id}-${user.action}`
+
     res.status(201).send({
       "status": "success",
       "partition": response.partition,
       "offset": response.logStartOffset,
       "event": {
-        "id": `user-${user.user_id}-${user.action}`,
+        "id": eventId,
         "type": "user",
         "timestamp": user.timestamp,
         "payload": {}
       }
     });
+
+    log(user.timestamp, eventId, topic);
   } catch (error) {
     res.status(500).send({error});
   }
@@ -107,12 +121,13 @@ app.post('/api/events/user', async (req: Request<{}, {}, UserPayload>, res) => {
 
 app.post('/api/events/payment', async (req: Request<{}, {}, PaymentPayload>, res) => {
   const payment = req.body;
+  const topic = 'payment-events';
 
   // TODO payload validation
 
   try {
     const [response] = await producer.send({
-      topic: 'payment-events',
+      topic,
       messages: [{ key: payment.payment_id.toString(), value: JSON.stringify(payment)  }],
     });
 
@@ -122,17 +137,21 @@ app.post('/api/events/payment', async (req: Request<{}, {}, PaymentPayload>, res
       return;
     }
 
+    const eventId = `payment-${payment.payment_id}-${payment.status}`
+
     res.status(201).send({
       "status": "success",
       "partition": response.partition,
       "offset": response.logStartOffset,
       "event": {
-        "id": `payment-${payment.payment_id}-${payment.status}`,
+        "id": eventId,
         "type": "payment",
         "timestamp": payment.timestamp,
         "payload": {}
       }
     });
+
+    log(payment.timestamp, eventId, topic);
   } catch (error) {
     res.status(500).send({error});
   }
