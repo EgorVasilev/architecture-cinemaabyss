@@ -3,7 +3,7 @@ workspace "Name" "Description" {
     !identifiers hierarchical
 
     model {
-        u = person "User" "Mobile"
+        u = person "Consumer"
 
         s3 = softwareSystem "S3" {
             tags "External"

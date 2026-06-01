@@ -5,7 +5,7 @@ global:
 
 # Image pull secrets
 imagePullSecrets:
-  dockerconfigjson: ewoJImF1dGhzIjogewoJCSJnaGNyLmlvIjogewoJCQkiYXV0aCI6
+  dockerconfigjson: ewoJImF1dGhzIjogewogICAgICAgICJnaGNyLmlvIjogewogICAgICAgICAgICAiYXV0aCI6ICJaV2R2Y25aaGMybHNaWFk2WjJod1gwWktUM1ZLUTFKa01FeEtlVkpTVjNOWFV6UkVkVkZ3VG5GQ1JuaERjRFJEVmpodFNBPT0iCiAgICAgICAgIH0KICAgIH0sCgkiY3VycmVudENvbnRleHQiOiAicm9vdGxlc3MiCn0K
 # Database configuration
 database:
   host: postgres
@@ -33,7 +33,7 @@ database:
 monolith:
   enabled: true
   image:
-    repository: ghcr.io/db-exp/cinemaabysstest/monolith
+    repository: ghcr.io/egorvasilev/architecture-cinemaabyss/monolith
     tag: latest
     pullPolicy: Always
   replicas: 1
@@ -53,7 +53,7 @@ monolith:
 proxyService:
   enabled: true
   image:
-    repository: ghcr.io/db-exp/cinemaabysstest/proxy-service
+    repository: ghcr.io/egorvasilev/architecture-cinemaabyss/proxy-service
     tag: latest
     pullPolicy: Always
   replicas: 1
@@ -66,14 +66,24 @@ proxyService:
       memory: 128Mi
   service:
     port: 80
-    targetPort: 8000
+    targetPort: 80
     type: ClusterIP
+  env:
+    # Standard key-value pairs
+    PORT: "8000"
+    MONOLITH_URL: "http://monolith:8080"
+    MONOLITH_DOMAIN: "monolith"
+    MONOLITH_PORT: "8080"
+    MOVIES_SERVICE_URL: "http://movies-service:8081"
+    MOVIES_SERVICE_DOMAIN: "movies-service"
+    MOVIES_SERVICE_PORT: "8081"
+    EVENTS_SERVICE_URL: "http://events-service:8082"
 
 # Movies service configuration
 moviesService:
   enabled: true
   image:
-    repository: ghcr.io/db-exp/cinemaabysstest/movies-service
+    repository: ghcr.io/egorvasilev/architecture-cinemaabyss/movies-service
     tag: latest
     pullPolicy: Always
   replicas: 1
@@ -93,7 +103,7 @@ moviesService:
 eventsService:
   enabled: true
   image:
-    repository: ghcr.io/db-exp/cinemaabysstest/events-service
+    repository: ghcr.io/egorvasilev/architecture-cinemaabyss/events-service
     tag: latest
     pullPolicy: Always
   replicas: 1
@@ -138,6 +148,10 @@ kafka:
     - name: payment-events
       partitions: 1
       replicationFactor: 1
+  service:
+    port: 9092
+    targetPort: 9092
+    type: ClusterIP
 
 # Zookeeper configuration
 zookeeper:
@@ -169,15 +183,26 @@ ingress:
   hosts:
     - host: cinemaabyss.example.com
       paths:
-        - path: /
+        - path: /api/movies
+          pathType: Prefix
+          service: proxy-service
+          port: 80
+        - path: /api/users
+          pathType: Prefix
+          service: proxy-service
+          port: 80
+        - path: /api/payments
           pathType: Prefix
           service: proxy-service
           port: 80
         - path: /api/events
           pathType: Prefix
-          service: events-service
-          port: 8082
-
+          service: proxy-service
+          port: 80
+        - path: /api/subscriptions
+          pathType: Prefix
+          service: proxy-service
+          port: 80
 # Application configuration
 config:
   # Strangler Fig configuration
