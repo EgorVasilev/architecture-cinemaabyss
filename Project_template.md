@@ -2,12 +2,30 @@
 
 # Задание 1
 
+<details>
+<summary>Описание задания</summary>
 1. Спроектируйте to be архитектуру КиноБездны, разделив всю систему на отдельные домены и организовав интеграционное взаимодействие и единую точку вызова сервисов.
 Результат представьте в виде контейнерной диаграммы в нотации С4.
 Добавьте ссылку на файл в этот шаблон
 [ссылка на файл](ссылка)
+</details>  
+
+## Решение 
+
+![C4 Diagram: Containers](./src/docs/assets/structurizr-1-Containers.png)
+
+[C4 Diagram: Containers](http://localhost:9010/workspace/diagrams#Containers)
+
+ℹ️ Для работы с диаграммами, пожалуйста, убедитесь, что соответствующий сервис работает:
+
+```bash
+docker compose up с4
+```
 
 # Задание 2
+
+<details>
+<summary>Описание задания</summary>
 
 ### 1. Proxy
 Команда КиноБездны уже выделила сервис метаданных о фильмах movies и вам необходимо реализовать бесшовный переход с применением паттерна Strangler Fig в части реализации прокси-сервиса (API Gateway), с помощью которого можно будет постепенно переключать траффик, используя фиче-флаг.
@@ -59,7 +77,17 @@
 Необходимые тесты для проверки этого API вызываются при запуске npm run test:local из папки tests/postman 
 Приложите скриншот тестов и скриншот состояния топиков Kafka из UI http://localhost:8090 
 
+</details>  
+
+## Решение 
+
+![Скриншот тестов](./src/docs/assets/tests.png)
+![Скриншот топиков Kafka после тестов](./src/docs/assets/topics.png)
+
 # Задание 3
+
+<details>
+<summary>Описание задания</summary>
 
 Команда начала переезд в Kubernetes для лучшего масштабирования и повышения надежности. 
 Вам, как архитектору осталось самое сложное:
@@ -275,8 +303,18 @@ cat .docker/config.json | base64
 #### Шаг 3
 Добавьте сюда скриншота вывода при вызове https://cinemaabyss.example.com/api/movies и  скриншот вывода event-service после вызова тестов.
 
+</details>
+
+## Решение 
+
+![Kuber Tests](./src/docs/assets/kuber-tests.png)
+![Events Service Logs](./src/docs/assets/logs.png)
 
 # Задание 4
+
+<details>
+<summary>Описание задания</summary>
+
 Для простоты дальнейшего обновления и развертывания вам как архитектуру необходимо так же реализовать helm-чарты для прокси-сервиса и проверить работу 
 
 Для этого:
@@ -349,6 +387,16 @@ minikube tunnel
 Потом вызовите 
 https://cinemaabyss.example.com/api/movies
 и приложите скриншот развертывания helm и вывода https://cinemaabyss.example.com/api/movies
+
+</details>
+
+## Решение 
+
+![Helm deployment](./src/docs/assets/helm-deployment.png)
+
+![Pods after Helm deployment](./src/docs/assets/pods-helm.png)
+
+![Movie after Helm deployment](./src/docs/assets/movies-helm.png)
 
 ## Удаляем все
 

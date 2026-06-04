@@ -1,0 +1,27 @@
+# Reverse Proxy with NGINX
+
+## Adding new migrations
+1. Make sure the new migration env variable mathces `%VARIABLENAME%_MIGRATION_PERCENT` e.g. `MOVIES_MIGRATION_PERCENT`
+2. Update envsubst list of variables to parse in Dockerfile (see `CMD envsubst '$MONOLITH_URL $MONOLITH_DOMAIN...` line)
+3. Make sure the new migration env variable used as `SPLIT_CLIENT_%VARIABLENAME%_MIGRATION_PERCENT` in NGINX split_clients function (it allows to set the variable as 0 in app config)
+3. ⚠️ Make sure that every new migration variable has a upstream "guard":
+```
+# Define your disable/enable variable (e.g., from a ENV_VARIABLE)
+# Default to 0 (normal split) if the disable flag isn't present
+map "${GRADUAL_MIGRATION}:${MOVIES_MIGRATION_PERCENT}" $split_mode {
+    default           0;
+    "~*false:\.*"     0;
+    "~*true:0$"       0;
+    "~*true:(\d+(?:\.\d+)?)$"     1;
+}
+
+# Map the mode to your split target
+map $split_mode $movies_upstream {
+    default     "movies_monolith";
+    0           "movies_monolith";      # Override/fallback route
+    1           $split_movies_backend;  # Normal route (uses the split_clients below)
+}
+```
+
+## Why do we need transform_split_clients script?
+It allows us to set a migration variable to 0 (0%), creating a **fail-safe copy** of the variable to insert in `split_clients` with a minimum value of 0.01 which is the minimum valid value for `split_clients`.
