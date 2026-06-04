@@ -1,24 +1,24 @@
 # Define your disable/enable variable (e.g., from a ENV_VARIABLE)
 # Default to 0 (normal split) if the disable flag isn't present
-map ${GRADUAL_MIGRATION} $split_mode {
-    default                             0;
-    "~*false"                           0; # 0 percents means bypass the split and go to the default version
-    "~*true"                            1;
+map "${GRADUAL_MIGRATION}:${MOVIES_MIGRATION_PERCENT}" $split_mode {
+    default           0;
+    "~*false:\.*"     0;
+    "~*true:0$"       0;
+    "~*true:(\d+(?:\.\d+)?)$"     1;
 }
 
 # Map the mode to your split target
 map $split_mode $movies_upstream {
     default     "movies_monolith";
-    0           "movies_monolith";    # Override/fallback route
+    0           "movies_monolith";      # Override/fallback route
     1           $split_movies_backend;  # Normal route (uses the split_clients below)
 }
 
 # Standard split_clients for normal traffic
 split_clients "${remote_addr}" $split_movies_backend {
-    ${MOVIES_MIGRATION_PERCENT}%     "movies_ms";
-    *                                "movies_monolith";
+    ${SPLIT_CLIENT_MOVIES_MIGRATION_PERCENT}%   "movies_ms";
+    *                                           "movies_monolith";
 }
-
 
 upstream movies_monolith {
     server ${MONOLITH_DOMAIN}:${MONOLITH_PORT};
